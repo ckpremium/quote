@@ -346,7 +346,7 @@
         return { min, max, unit, active };
       }).filter((t) => t.min >= 100 || S.qty < 100);
       return `
-      <p class="step-sub">สั่งได้ตั้งแต่ 10 ใบ · ยิ่งสั่งมาก ราคาต่อใบยิ่งถูก</p>
+      <p class="step-sub">แนะนำ 100 ใบขึ้นไป · ยิ่งสั่งมาก ราคาต่อใบยิ่งถูก</p>
       <div class="qty-box">
         <button class="qbtn" data-action="qty-step" data-d="-1" aria-label="ลด">−</button>
         <div class="qty-input-wrap">
@@ -603,17 +603,23 @@
     return notes.map((n) => `<div class="notice">${ICON.info}<span>${esc(n)}</span></div>`).join("");
   }
   function qtyLive(r) {
-    if (r.flags.includes("tooFew")) return `<div class="live warn">สั่งได้ตั้งแต่ ${CK.minQuote} ใบขึ้นไป</div>`;
+    if (r.flags.includes("tooFew")) return `<div class="live warn">จำนวนน้อยกว่านี้ ทักแชทเพจเพื่อสอบถามแอดมินได้ครับ</div>`;
     if (r.flags.includes("adminPrice")) return `<div class="live warn">งานพิมพ์รุ่นนี้ต่ำกว่า 50 ใบ แอดมินจะแจ้งราคาให้</div>`;
     if (!r.ok) return "";
+    let nudge = r.next;
+    if (S.qty < 100) {
+      const at100 = q100();
+      if (at100.ok && at100.unit < r.unit) nudge = { qty: 100, unit: at100.unit, save: r.unit - at100.unit };
+    }
     return `<div class="live">
       <div class="live-row"><span>ราคาต่อใบ</span><b>${fmt(r.unit)} ฿</b></div>
       <div class="live-row"><span>${fmt(S.qty)} ใบ</span><b>${fmt(r.subtotal)} ฿</b></div>
-      ${r.next ? `<button class="nudge" data-action="qty-set" data-n="${r.next.qty}">สั่ง ${fmt(r.next.qty)} ใบ ลดเหลือใบละ ${fmt(r.next.unit)} ฿ <span>(ถูกลง ${fmt(r.next.save)} ฿/ใบ)</span></button>` : ""}
+      ${nudge ? `<button class="nudge" data-action="qty-set" data-n="${nudge.qty}">สั่ง ${fmt(nudge.qty)} ใบ ลดเหลือใบละ ${fmt(nudge.unit)} ฿ <span>(ถูกลง ${fmt(nudge.save)} ฿/ใบ)</span></button>` : ""}
       ${r.flags.includes("belowMin") ? `<div class="live-note">ต่ำกว่าขั้นต่ำปกติ 50 ใบ</div>` : ""}
       ${r.flags.includes("bigOrder") ? `<div class="live-note">ออเดอร์ใหญ่ แอดมินดูแลให้เป็นพิเศษ</div>` : ""}
     </div>`;
   }
+  const q100 = () => P.quote(CK, { product: product(), method: S.method || "laser", uniqueName: S.uniqueName, twoSides: S.twoSides, qty: 100 });
   function refreshQty() {
     $("#qtyLive").innerHTML = qtyLive(q());
     document.querySelectorAll(".step-qty .chip").forEach((c) => c.classList.toggle("on", Number(c.dataset.n) === S.qty));
@@ -625,7 +631,8 @@
     });
     renderBar();
   }
-  const QTY_STOPS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000];
+  // แถบเลื่อนเริ่มที่ 100 ใบ (พิมพ์จำนวนน้อยกว่านี้เองได้ แต่ไม่ชี้ให้เห็น)
+  const QTY_STOPS = [100, 120, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000];
   function nearestStop(v) {
     let best = 0;
     QTY_STOPS.forEach((s, i) => { if (Math.abs(s - v) < Math.abs(QTY_STOPS[best] - v)) best = i; });
