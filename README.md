@@ -61,3 +61,13 @@ node tools/test_pricing.js "$PWD"
 6. เลือกฟังก์ชัน `findTelegramChatId` → Run → ดู **Chat ID** ใน Execution log → เพิ่ม Script Property `TELEGRAM_CHAT_ID` = ตัวเลขนั้น (กลุ่มจะเป็นเลขติดลบ ใส่เครื่องหมาย - ด้วย)
 7. เลือกฟังก์ชัน `testTelegram` → Run → ควรมีข้อความทดสอบเด้งใน Telegram
 8. **Deploy เวอร์ชันใหม่** — Deploy → Manage deployments → กดดินสอ (Edit) → Version: **New version** → Deploy (URL เดิม ไม่ต้องแก้เว็บ)
+
+## Google Analytics 4
+
+1. ติดตั้งแล้ว: Google tag `GTM-W69FF44C` → GA4 `G-FM2Q2WX4GT` (ตั้งที่ `googleTagId` ใน `js/data.js`, โหลดใน `js/analytics.js`)
+2. เปลี่ยนแท็ก: แก้ `googleTagId` แล้ว push
+3. Admin → Events → ติดดาว `generate_lead` เป็น Key event (นับยอดคนขอใบเสนอราคา)
+4. Admin → Custom definitions → เพิ่ม Event-scoped dimension: `step`, `product`, `via` (และ metric `qty`)
+
+Events ที่ส่ง: `quiz_start`, `quiz_step` (step, step_number, product), `quote_request` / `generate_lead` (product, qty, value, currency, via, vat), `send_messenger`, `open_chat`, `send_email`, `summary_image`
+ไม่ส่งชื่อ เบอร์ อีเมลลูกค้าเข้า GA · เปิดจาก localhost จะไม่นับ (ทดสอบด้วย `?ga_debug=1` แล้วดูใน Admin → DebugView)

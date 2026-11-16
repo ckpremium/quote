@@ -64,9 +64,9 @@
   const productLabel = (p) => `${p.code} ${p.name}`;
   const capacity = (p) => p.ml ? `${p.ml} ml` : p.oz ? `${p.oz} oz` : "";
   function track(name, data) {
-    // จุดเชื่อม Meta Pixel / Google Analytics ภายหลัง
+    // GA4 (js/analytics.js) + จุดเชื่อม Meta Pixel ภายหลัง
+    if (window.gtag) window.gtag("event", name, data || {});
     if (window.fbq) window.fbq("trackCustom", name, data || {});
-    if (window.dataLayer) window.dataLayer.push(Object.assign({ event: name }, data || {}));
   }
   function toast(msg) {
     const t = $("#toast");
@@ -98,7 +98,8 @@
     S.step = id; save();
     render(opts.dir || "fwd");
     window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
-    track("quiz_step", { step: id });
+    const n = visibleSteps().findIndex((s) => s.id === id);
+    track("quiz_step", { step: id, step_number: n, product: S.code || "" });
   }
   function next() {
     const vs = visibleSteps();
@@ -750,7 +751,9 @@
     const btn = $("#nextBtn"); btn.disabled = true; btn.textContent = "กำลังส่ง…";
     await sendToShop();
     const r = q();
-    track("quote_request", { product: S.code, qty: S.qty, value: r.total || 0, currency: "THB", via: via() });
+    const lead = { product: S.code, qty: S.qty, value: r.total || 0, currency: "THB", via: via(), vat: S.vat ? "yes" : "no" };
+    track("quote_request", lead);
+    track("generate_lead", lead); // event มาตรฐาน GA4 — ตั้งเป็น Key event เพื่อนับยอดลีด
     buildPrint();
     go("done");
   }
@@ -883,6 +886,7 @@
         sendToShop().then(() => render("none"));
         break;
       case "open-chat":
+        track("open_chat");
         window.open(`https://m.me/${CK.config.messengerPage}?ref=${encodeURIComponent(S.ref)}`, "_blank");
         break;
       case "switch-via":

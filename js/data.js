@@ -11,6 +11,8 @@ window.CK = {
     lineUrl: "https://lin.ee/cta05QU",
     email: "ckprintingth@gmail.com",
     catalogueUrl: "https://ckpremium.github.io/catalogue/",
+    // Google tag (ส่งเข้า GA4 G-FM2Q2WX4GT) — ว่างไว้ = ไม่เก็บสถิติ
+    googleTagId: "GTM-W69FF44C",
   },
 
   // จุดเริ่มของแต่ละขั้นราคา: 10–19, 20–49, 50–99, 100–199, 200–499, 500–999, 1,000–2,999, 3,000–4,999, 5,000+
