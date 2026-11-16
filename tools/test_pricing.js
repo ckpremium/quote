@@ -1,0 +1,31 @@
+const path = require('path'); const P = process.argv[2];
+global.window = global;
+require(path.join(P, 'js/data.js')); require(path.join(P, 'js/products-other.js'));
+const { quote } = require(path.join(P, 'js/pricing.js'));
+const CK = window.CK; const tbl19 = CK.featured[2]; const by = c => window.CK_OTHER_PRODUCTS.find(p => p.code === c);
+let fails = 0;
+function eq(label, got, want) { const ok = JSON.stringify(got) === JSON.stringify(want); if (!ok) fails++; console.log((ok ? 'PASS ' : 'FAIL ') + label + ' => ' + JSON.stringify(got) + (ok ? '' : ' want ' + JSON.stringify(want))); }
+// ตัวอย่างในไฟล์ร้าน: TBL-19 เลเซอร์ 50 ใบ ส่งกรุงเทพฯ = 6,000
+eq('TBL-19 laser 50 bkk', quote(CK, {product: tbl19, method:'laser', qty:50, ship:'bkk'}).total, 6000);
+eq('same + VAT', quote(CK, {product: tbl19, method:'laser', qty:50, ship:'bkk', vat:true}).total, 6420);
+eq('TBL-17 laser 100 unit', quote(CK, {product: CK.featured[0], qty:100}).unit, 85);
+eq('TBL-17 print 100 unit', quote(CK, {product: CK.featured[0], method:'print', qty:100}).unit, 99);
+eq('TBL print 30 => admin', quote(CK, {product: tbl19, method:'print', qty:30}).flags, ['adminPrice']);
+eq('TB-005 print 100 = 100+20', quote(CK, {product: by('TB-005'), method:'print', qty:100}).unit, 120);
+eq('TB-006 laser 5000', quote(CK, {product: by('TB-006'), qty:5000}).unit, 98);
+eq('ship <50 bkk 20 pcs', quote(CK, {product: tbl19, qty:20, ship:'bkk'}).shipping, 50 + 19*10);
+eq('ship upc 100', quote(CK, {product: tbl19, qty:100, ship:'upc'}).shipping, 1000);
+eq('pickup', quote(CK, {product: tbl19, qty:100, ship:'pickup'}).shipping, 0);
+eq('unique name 100', quote(CK, {product: tbl19, qty:100, uniqueName:true}).unit, 85+50);
+eq('flags 2500 + deadline', quote(CK, {product: tbl19, qty:2500, deadline:'2026-12-01'}).flags, ['bigOrder','deadline']);
+eq('flags 30 laser', quote(CK, {product: tbl19, qty:30}).flags, ['belowMin']);
+eq('9 pcs', quote(CK, {product: tbl19, qty:9}).flags, ['tooFew']);
+eq('next tier from 80', quote(CK, {product: tbl19, qty:80}).next, {qty:100, unit:85, save:25});
+eq('next tier TBL print 120', quote(CK, {product: tbl19, method:'print', qty:120}).next, {qty:200, unit:97, save:2});
+eq('no next at 5000', quote(CK, {product: tbl19, qty:5000}).next, undefined);
+eq('2 sides laser 100', quote(CK, {product: tbl19, qty:100, twoSides:true}).unit, 85+20);
+eq('2 sides print TBL 100', quote(CK, {product: tbl19, method:'print', qty:100, twoSides:true}).unit, 99+40);
+eq('2 sides laser 30 uses 50-tier', quote(CK, {product: tbl19, qty:30, twoSides:true}).sideUnit, 45);
+eq('2 sides TB-005 print 1000', quote(CK, {product: by('TB-005'), method:'print', qty:1000, twoSides:true}).unit, 75+20+30);
+eq('2 sides laser 250 next tier 300', quote(CK, {product: tbl19, qty:250, twoSides:true}).next, {qty:300, unit:82+17, save:3});
+console.log(fails ? fails + ' FAILED' : 'all passed');

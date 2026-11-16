@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>เช็กราคาแก้วสกรีนโลโก้ | CK Premium</title>
+  <meta name="description" content="เลือกรุ่นแก้ว จำนวน และวิธีทำโลโก้ รู้ราคาทันทีใน 1 นาที พร้อมขอใบเสนอราคาจาก CK Premium" />
+  <meta property="og:title" content="เช็กราคาแก้วสกรีนโลโก้ใน 1 นาที | CK Premium" />
+  <meta property="og:description" content="แก้วเก็บความเย็น กระบอกน้ำ เลเซอร์/พิมพ์โลโก้ ม็อคอัพฟรีก่อนผลิต" />
+  <meta property="og:image" content="https://ckpremium.github.io/quote/assets/tbl/TBL-19.jpg" />
+  <meta property="og:url" content="https://ckpremium.github.io/quote/" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#EE7A22" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Prompt:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar" id="topbar">
+      <button class="icon-btn" id="backBtn" aria-label="ย้อนกลับ" hidden>
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="progress" id="progress" hidden>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <span class="logo dark small"><span class="logo-mark"></span>CK Premium</span>
+    </header>
+
+    <main id="app" class="app" aria-live="polite"></main>
+
+    <footer class="bottombar" id="bottombar" hidden>
+      <div class="price-chip" id="priceChip"></div>
+      <button class="btn btn-primary" id="nextBtn">ถัดไป</button>
+    </footer>
+  </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <img id="lightboxImg" alt="" />
+    <button class="lightbox-close" aria-label="ปิด">×</button>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <section id="printSheet" class="print-sheet" aria-hidden="true"></section>
+
+  <script src="js/data.js"></script>
+  <script src="js/products-other.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/summary-image.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
