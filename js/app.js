@@ -23,7 +23,7 @@
     deadlineMode: null,
     deadline: "",
     logo: null,
-    contact: { via: null, name: "", email: "", phone: "", company: "", taxId: "", branch: "", address: "", website: "" },
+    contact: { via: null, name: "", email: "", phone: "", company: "", taxId: "", branch: "", address: "", note: "", website: "" },
     submitStatus: null,
     ref: null,
     sentAt: null,
@@ -46,7 +46,7 @@
   const featured = () => { const p = product(); return p && P.isFeatured(CK, p); };
   const q = () => P.quote(CK, {
     product: product(), method: S.method || "laser", uniqueName: S.uniqueName, twoSides: S.twoSides, qty: S.qty,
-    ship: S.ship, vat: !!S.vat, deadline: S.deadlineMode === "date" ? S.deadline : "",
+    ship: S.ship, vat: !!S.vat, deadline: "",
   });
 
   // ---------- helpers ----------
@@ -84,7 +84,8 @@
     { id: "qty", title: "ต้องการ<b>กี่ใบ</b>", valid: () => S.qty >= CK.minQuote },
     { id: "ship", title: "รับสินค้า<b>แบบไหน</b>", valid: () => !!S.ship, auto: true },
     { id: "vat", title: "ต้องการ<b>ใบกำกับภาษี</b>ไหม", valid: () => S.vat !== null, auto: true },
-    { id: "deadline", title: "ต้องใช้ของ<b>เมื่อไร</b>", valid: () => S.deadlineMode === "none" || (S.deadlineMode === "date" && !!S.deadline) },
+    // ขั้นวันที่ต้องใช้ของ ปิดไว้ — ไม่ชวนให้ลูกค้าระบุวัน ให้ใส่ในช่องหมายเหตุแทนถ้ารีบ
+    { id: "deadline", title: "ต้องใช้ของ<b>เมื่อไร</b>", visible: () => false, valid: () => S.deadlineMode === "none" || (S.deadlineMode === "date" && !!S.deadline) },
     { id: "logo", title: "มี<b>โลโก้</b>แล้วหรือยัง", valid: () => !!S.logo, auto: true },
     { id: "summary", title: "สรุป<b>ราคา</b>", valid: () => contactErrors().length === 0 },
     { id: "done" },
@@ -467,6 +468,7 @@
         ${field("branch", "สาขา (เช่น สำนักงานใหญ่ / 00001)", c.branch, "text", "สำนักงานใหญ่", false)}
         <label class="field"><span>ที่อยู่สำหรับออกใบกำกับภาษี <i>*</i></span><textarea name="address" rows="3" autocomplete="street-address">${esc(c.address)}</textarea></label>` : `
         ${field("company", "ชื่อบริษัท / หน่วยงาน (ถ้ามี)", c.company, "text", "", false)}`}
+        <label class="field"><span>หมายเหตุถึงแอดมิน (ถ้ามี)</span><textarea name="note" rows="3" maxlength="500" placeholder="เช่น วันที่ต้องใช้ของ ตำแหน่งโลโก้ หรือรายละเอียดอื่นๆ">${esc(c.note)}</textarea></label>
         <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <p class="privacy">ข้อมูลนี้ใช้เพื่อออกใบเสนอราคาและใบกำกับภาษีเท่านั้น</p>
       </form>` : ""}`;
@@ -665,7 +667,6 @@
       `จัดส่ง: ${shipText()}${r.ok && r.shipping ? ` (${fmt(r.shipping)} บาท)` : ""}`,
       `ใบกำกับภาษี: ${S.vat ? "ต้องการ (+7%)" : "ไม่ต้องการ"}`,
       r.ok ? `ยอดรวม: ${fmt(r.total)} บาท` : null,
-      `ต้องใช้ของ: ${S.deadlineMode === "date" ? thaiDate(S.deadline) : "ไม่รีบ"}`,
       `โลโก้: ${logoText()}`,
       `ชื่อ: ${c.name}`,
       c.email ? `อีเมล: ${c.email}` : null,
@@ -674,6 +675,7 @@
       c.company ? `บริษัท: ${c.company}` : null,
       S.vat && c.taxId ? `เลขผู้เสียภาษี: ${c.taxId}${c.branch ? ` (${c.branch})` : ""}` : null,
       S.vat && c.address ? `ที่อยู่: ${c.address}` : null,
+      c.note.trim() ? `หมายเหตุ: ${c.note.trim()}` : null,
     ];
     return lines.filter(Boolean).join("\n");
   }
@@ -751,7 +753,8 @@
       ref: S.ref, sentAt: S.sentAt, via: via(),
       product: `${S.code} ${product().name}`, method: methodText(), qty: S.qty,
       unit: r.unit ?? "", shipping: r.shipping ?? "", vat: !!S.vat, vatAmount: r.vat ?? "", total: r.total ?? "",
-      ship: shipText(), deadline: S.deadlineMode === "date" ? S.deadline : "", logo: logoText(), flags: r.flags.join(","),
+      // note ส่งในช่อง deadline ด้วย เพื่อให้ Apps Script เวอร์ชันที่ติดตั้งอยู่บันทึกลงคอลัมน์ "ต้องใช้ของ" ได้โดยไม่ต้อง deploy ใหม่
+      ship: shipText(), deadline: c.note.trim(), note: c.note.trim(), logo: logoText(), flags: r.flags.join(","),
       name: c.name, email: via() === "email" ? c.email : "", phone: c.phone ? normPhone(c.phone) : "", company: c.company,
       taxId: S.vat ? c.taxId.replace(/\D/g, "") : "", branch: S.vat ? c.branch : "", address: S.vat ? c.address : "",
       summary: summaryText(), image,
@@ -895,7 +898,7 @@
     if (!r.ok) notes.push("งานพิมพ์รุ่นนี้ต่ำกว่า 50 ใบ แอดมินจะแจ้งราคาให้");
     if (r.flags.includes("belowMin")) notes.push("ต่ำกว่าขั้นต่ำปกติ (50 ใบ) แอดมินจะยืนยันการรับงาน");
     if (r.flags.includes("bigOrder")) notes.push("ออเดอร์จำนวนมาก แอดมินดูแลเป็นพิเศษ");
-    if (r.flags.includes("deadline")) notes.push(`ต้องการรับของภายใน ${thaiDate(S.deadline)} — รอแอดมินยืนยันคิวผลิต`);
+    if (c.note.trim()) notes.push(`หมายเหตุ: ${c.note.trim()}`);
     return {
       ref: S.ref, date: thaiDate((S.sentAt || new Date().toISOString()).slice(0, 10)),
       code: p.code, name: p.name, img: p.img, method: methodText(),
@@ -904,7 +907,6 @@
       details: [
         ["จำนวน", `${fmt(S.qty)} ใบ`],
         ["ใบกำกับภาษี", S.vat ? "ต้องการ" : "ไม่ต้องการ"],
-        ["ต้องใช้ของ", S.deadlineMode === "date" ? thaiDate(S.deadline) : "ไม่รีบ (7–10 วันทำการ)"],
         ["โลโก้", logoText()],
         ["ผู้ติดต่อ", c.name + (c.company ? ` · ${c.company}` : "")],
       ],

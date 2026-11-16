@@ -12,7 +12,7 @@ const SHEET_NAME = "คำขอใบเสนอราคา";
 const HEADERS = [
   "เวลา", "เลขอ้างอิง", "ช่องทาง", "สถานะ", "ชื่อ", "อีเมล", "เบอร์โทร", "บริษัท",
   "เลขผู้เสียภาษี", "สาขา", "ที่อยู่ใบกำกับ", "รุ่น", "งาน", "จำนวน", "ราคาต่อใบ",
-  "ค่าส่ง", "จัดส่ง", "VAT", "ยอดรวม", "ต้องใช้ของ", "โลโก้", "หมายเหตุระบบ",
+  "ค่าส่ง", "จัดส่ง", "VAT", "ยอดรวม", "หมายเหตุลูกค้า", "โลโก้", "หมายเหตุระบบ",
 ];
 
 function doPost(e) {
@@ -29,7 +29,7 @@ function doPost(e) {
         cut(d.name), cut(d.email), "'" + cut(d.phone), cut(d.company),
         "'" + cut(d.taxId), cut(d.branch), cut(d.address, 500), cut(d.product), cut(d.method),
         num(d.qty), num(d.unit), num(d.shipping), cut(d.ship), d.vat ? num(d.vatAmount) : "-",
-        num(d.total), cut(d.deadline), cut(d.logo), cut(d.flags),
+        num(d.total), cut(d.note || d.deadline, 500), cut(d.logo), cut(d.flags),
       ]);
     } finally {
       lock.releaseLock();
