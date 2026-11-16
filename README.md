@@ -43,3 +43,8 @@ node tools/test_pricing.js "$PWD"
 กด "ตอบกลับ" ในอีเมลแจ้งเตือน = ตอบลูกค้าโดยตรง (แนบใบเสนอราคาแล้วส่ง)
 
 > ถ้าแก้โค้ด Apps Script ภายหลัง ต้อง Deploy → Manage deployments → แก้ไข → เวอร์ชันใหม่ ทุกครั้ง
+
+## เว็บจริง
+- ลิงก์: https://ckpremium.github.io/quote/
+- โค้ด: https://github.com/ckpremium/quote (GitHub Pages จาก branch `main`)
+- อัปเดตเว็บ: แก้ไฟล์ในโฟลเดอร์นี้ แล้ว `git add -A && git commit -m "..." && git push` — เว็บจะอัปเดตใน 1–2 นาที
