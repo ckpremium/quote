@@ -344,9 +344,9 @@
         const unit = P.unitPrice(CK, p, S.method || "laser", min);
         const active = S.qty >= min && (max === null || S.qty <= max);
         return { min, max, unit, active };
-      }).filter((t) => t.min >= 50 || S.qty < 50);
+      }).filter((t) => t.min >= 100 || S.qty < 100);
       return `
-      <p class="step-sub">ขั้นต่ำปกติ 50 ใบ · ยิ่งสั่งมาก ราคาต่อใบยิ่งถูก</p>
+      <p class="step-sub">สั่งได้ตั้งแต่ 10 ใบ · ยิ่งสั่งมาก ราคาต่อใบยิ่งถูก</p>
       <div class="qty-box">
         <button class="qbtn" data-action="qty-step" data-d="-1" aria-label="ลด">−</button>
         <div class="qty-input-wrap">
@@ -356,7 +356,7 @@
         <button class="qbtn" data-action="qty-step" data-d="1" aria-label="เพิ่ม">+</button>
       </div>
       <input id="qtyRange" class="qty-range" type="range" min="0" max="${QTY_STOPS.length - 1}" step="1" value="${nearestStop(S.qty)}" aria-label="เลื่อนเลือกจำนวน" />
-      <div class="chips center">${[50, 100, 200, 300, 500, 1000].map((n) => `<button class="chip ${S.qty === n ? "on" : ""}" data-action="qty-set" data-n="${n}">${fmt(n)}</button>`).join("")}</div>
+      <div class="chips center">${[100, 200, 300, 500, 1000, 2000].map((n) => `<button class="chip ${S.qty === n ? "on" : ""}" data-action="qty-set" data-n="${n}">${fmt(n)}</button>`).join("")}</div>
       <div id="qtyLive">${qtyLive(r)}</div>
       <div class="tiers">
         <div class="tiers-head"><span>จำนวน (ใบ)</span><span>ราคาต่อใบ</span></div>

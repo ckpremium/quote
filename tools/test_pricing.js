@@ -18,7 +18,8 @@ eq('ship upc 100', quote(CK, {product: tbl19, qty:100, ship:'upc'}).shipping, 10
 eq('pickup', quote(CK, {product: tbl19, qty:100, ship:'pickup'}).shipping, 0);
 eq('unique name 100', quote(CK, {product: tbl19, qty:100, uniqueName:true}).unit, 85+50);
 eq('flags 2500 + deadline', quote(CK, {product: tbl19, qty:2500, deadline:'2026-12-01'}).flags, ['bigOrder','deadline']);
-eq('flags 30 laser', quote(CK, {product: tbl19, qty:30}).flags, ['belowMin']);
+eq('flags 30 laser (no min warning)', quote(CK, {product: tbl19, qty:30}).flags, []);
+eq('30 laser unit = 20-49 tier', quote(CK, {product: tbl19, qty:30}).unit, 160);
 eq('9 pcs', quote(CK, {product: tbl19, qty:9}).flags, ['tooFew']);
 eq('next tier from 80', quote(CK, {product: tbl19, qty:80}).next, {qty:100, unit:85, save:25});
 eq('next tier TBL print 120', quote(CK, {product: tbl19, method:'print', qty:120}).next, {qty:200, unit:97, save:2});
