@@ -460,7 +460,7 @@
       <form class="form" id="contactForm" novalidate>
         ${field("name", "ชื่อผู้ติดต่อ", c.name, "text", "เช่น คุณสมชาย", true)}
         ${via() === "email" ? field("email", "อีเมลสำหรับรับใบเสนอราคา", c.email, "email", "name@company.com", true, 'autocomplete="email" inputmode="email"') : ""}
-        ${field("phone", "เบอร์โทร (ถ้ามี)", c.phone, "tel", "08x-xxx-xxxx", false, 'autocomplete="tel"')}
+        ${field("phone", "เบอร์โทร (ถ้ามี)", c.phone, "tel", "08x-xxx-xxxx หรือ +66 8x xxx xxxx", false, 'autocomplete="tel"')}
         ${S.vat ? `
         ${field("company", "ชื่อบริษัท / ผู้เสียภาษี", c.company, "text", "", true, 'autocomplete="organization"')}
         ${field("taxId", "เลขประจำตัวผู้เสียภาษี 13 หลัก", c.taxId, "text", "", true, 'inputmode="numeric" maxlength="17"')}
@@ -678,12 +678,23 @@
     return lines.filter(Boolean).join("\n");
   }
 
+  // เบอร์โทร: รับได้ทั้ง 08x-xxx-xxxx, +66 8x xxx xxxx, 66812345678, +66 (0)81... และเบอร์ต่างประเทศ +xx
+  function normPhone(v) {
+    let d = String(v).replace(/[\s\-().]/g, "");
+    if (/^\+?66/.test(d)) d = "0" + d.replace(/^\+?66/, "").replace(/^0/, "");
+    return d;
+  }
+  function validPhone(v) {
+    const d = normPhone(v);
+    return /^0\d{8,9}$/.test(d) || /^\+\d{8,15}$/.test(d);
+  }
+
   function contactErrors() {
     const c = S.contact, errs = [];
     if (!via()) { errs.push("via"); return errs; }
     if (!c.name.trim()) errs.push("name");
     if (via() === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) errs.push("email");
-    if (c.phone.trim() && !/^0\d{8,9}$/.test(c.phone.replace(/[\s-]/g, ""))) errs.push("phone");
+    if (c.phone.trim() && !validPhone(c.phone)) errs.push("phone");
     if (S.vat) {
       if (!c.company.trim()) errs.push("company");
       if (!/^\d{13}$/.test(c.taxId.replace(/[\s-]/g, ""))) errs.push("taxId");
@@ -708,7 +719,10 @@
       }
       errs.forEach((n) => document.querySelector(`[name="${n}"]`)?.closest(".field")?.classList.add("err"));
       document.querySelector(".field.err")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      toast("กรุณากรอกข้อมูลให้ครบ");
+      toast(errs.length === 1 && errs[0] === "phone" ? "เบอร์โทรไม่ถูกต้อง เช่น 081-234-5678 หรือ +66 81 234 5678"
+        : errs.length === 1 && errs[0] === "email" ? "อีเมลไม่ถูกต้อง"
+        : errs.length === 1 && errs[0] === "taxId" ? "เลขผู้เสียภาษีต้องมี 13 หลัก"
+        : "กรุณากรอกข้อมูลให้ครบ");
       return;
     }
     if (!S.ref) S.ref = makeRef();
@@ -738,7 +752,7 @@
       product: `${S.code} ${product().name}`, method: methodText(), qty: S.qty,
       unit: r.unit ?? "", shipping: r.shipping ?? "", vat: !!S.vat, vatAmount: r.vat ?? "", total: r.total ?? "",
       ship: shipText(), deadline: S.deadlineMode === "date" ? S.deadline : "", logo: logoText(), flags: r.flags.join(","),
-      name: c.name, email: via() === "email" ? c.email : "", phone: c.phone, company: c.company,
+      name: c.name, email: via() === "email" ? c.email : "", phone: c.phone ? normPhone(c.phone) : "", company: c.company,
       taxId: S.vat ? c.taxId.replace(/\D/g, "") : "", branch: S.vat ? c.branch : "", address: S.vat ? c.address : "",
       summary: summaryText(), image,
     };
