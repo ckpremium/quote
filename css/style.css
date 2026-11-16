@@ -285,6 +285,8 @@ a { color: var(--orange-d); }
 
 /* quote channel */
 .options.via { margin-bottom: 18px; }
+.vat-q { margin-bottom: 6px; }
+.step-sub.sub-gap { margin-top: 22px; }
 .via-icon { flex: none; width: 44px; height: 44px; border-radius: 99px; display: grid; place-items: center; background: var(--orange-l); color: var(--orange-d); }
 .via-icon.fb { background: #e8f0ff; color: var(--fb); }
 .mini { font-size: 13px; color: var(--muted); margin: 0; }

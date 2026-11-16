@@ -48,3 +48,16 @@ node tools/test_pricing.js "$PWD"
 - ลิงก์: https://ckpremium.github.io/quote/
 - โค้ด: https://github.com/ckpremium/quote (GitHub Pages จาก branch `main`)
 - อัปเดตเว็บ: แก้ไฟล์ในโฟลเดอร์นี้ แล้ว `git add -A && git commit -m "..." && git push` — เว็บจะอัปเดตใน 1–2 นาที
+
+## แจ้งเตือนเข้า Telegram (ทำครั้งเดียว ~5 นาที)
+ทุกครั้งที่ลูกค้ากด "ขอใบเสนอราคา" จะมีรูปสรุปราคา + รายละเอียดเด้งเข้า Telegram
+
+1. **สร้างบอท** — ใน Telegram ค้นหา `@BotFather` → พิมพ์ `/newbot` → ตั้งชื่อ (เช่น CK Premium แจ้งเตือน) → ตั้ง username ที่ลงท้ายด้วย `bot` → จะได้ **token** (หน้าตาแบบ `123456:ABC...`) เก็บเป็นความลับ ห้ามใส่ในโค้ดเว็บ
+2. **ให้บอทรู้จักแชท** — เปิดบอทที่เพิ่งสร้างแล้วกด **Start** (หรือถ้าอยากให้แจ้งเข้ากลุ่มทีม: เพิ่มบอทเข้ากลุ่ม แล้วพิมพ์ข้อความอะไรก็ได้ในกลุ่ม 1 ครั้ง)
+3. **อัปเดตโค้ด Apps Script** — เปิด Apps Script ของชีตคำขอ → ลบโค้ดเดิม → วางโค้ดใหม่ทั้งหมดจาก `tools/google-apps-script.gs` → บันทึก
+4. **ใส่ token** — ไอคอนเฟือง (Project Settings) → Script Properties → Add script property
+   - Property: `TELEGRAM_BOT_TOKEN` Value: token จากข้อ 1 → บันทึก
+5. กลับไปหน้าโค้ด → เลือกฟังก์ชัน `setup` → Run (อนุญาตสิทธิ์ "เชื่อมต่อบริการภายนอก")
+6. เลือกฟังก์ชัน `findTelegramChatId` → Run → ดู **Chat ID** ใน Execution log → เพิ่ม Script Property `TELEGRAM_CHAT_ID` = ตัวเลขนั้น (กลุ่มจะเป็นเลขติดลบ ใส่เครื่องหมาย - ด้วย)
+7. เลือกฟังก์ชัน `testTelegram` → Run → ควรมีข้อความทดสอบเด้งใน Telegram
+8. **Deploy เวอร์ชันใหม่** — Deploy → Manage deployments → กดดินสอ (Edit) → Version: **New version** → Deploy (URL เดิม ไม่ต้องแก้เว็บ)

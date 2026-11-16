@@ -41,7 +41,7 @@
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {} }
 
   // ช่องทางรับใบเสนอราคา: อีเมลมีเฉพาะกรณีรับใบกำกับภาษี — ไม่รับใบกำกับ = แชทเพจเสมอ
-  const via = () => (S.vat ? S.contact.via : "messenger");
+  const via = () => (S.vat === true ? S.contact.via : S.vat === false ? "messenger" : null);
   const product = () => ALL.find((p) => p.code === S.code) || null;
   const featured = () => { const p = product(); return p && P.isFeatured(CK, p); };
   const q = () => P.quote(CK, {
@@ -83,7 +83,8 @@
     { id: "method", title: "ทำโลโก้<b>แบบไหนดี</b>", valid: () => !!S.method },
     { id: "qty", title: "ต้องการ<b>กี่ใบ</b>", valid: () => S.qty >= CK.minQuote },
     { id: "ship", title: "รับสินค้า<b>แบบไหน</b>", valid: () => !!S.ship, auto: true },
-    { id: "vat", title: "ต้องการ<b>ใบกำกับภาษี</b>ไหม", valid: () => S.vat !== null, auto: true },
+    // ถามใบกำกับภาษีในหน้าสรุป (ท้ายสุด) แทนขั้นแยก
+    { id: "vat", title: "ต้องการ<b>ใบกำกับภาษี</b>ไหม", visible: () => false, valid: () => S.vat !== null, auto: true },
     // ขั้นวันที่ต้องใช้ของ ปิดไว้ — ไม่ชวนให้ลูกค้าระบุวัน ให้ใส่ในช่องหมายเหตุแทนถ้ารีบ
     { id: "deadline", title: "ต้องใช้ของ<b>เมื่อไร</b>", visible: () => false, valid: () => S.deadlineMode === "none" || (S.deadlineMode === "date" && !!S.deadline) },
     { id: "logo", title: "มี<b>โลโก้</b>แล้วหรือยัง", valid: () => !!S.logo, auto: true },
@@ -442,8 +443,13 @@
       </div>
 
       <h2 class="form-title">ขอ<b>ใบเสนอราคา</b></h2>
-      ${S.vat ? `
-      <p class="step-sub">เลือกช่องทางรับใบเสนอราคาและใบกำกับภาษี</p>
+      <p class="step-sub">ต้องการใบกำกับภาษีไหม</p>
+      <div class="options vat-q">
+        ${opt("vat", false, "ไม่ต้องการใบกำกับภาษี", "ใช้ราคาตามตาราง", "")}
+        ${opt("vat", true, "ต้องการใบกำกับภาษี", "บวกเพิ่ม 7% · กรอกข้อมูลบริษัทสำหรับออกใบกำกับ", vatPreview())}
+      </div>
+      ${S.vat === true ? `
+      <p class="step-sub sub-gap">เลือกช่องทางรับใบเสนอราคาและใบกำกับภาษี</p>
       <div class="options via">
         <button type="button" class="option ${c.via === "email" ? "selected" : ""}" data-action="via" data-v="email">
           <span class="tick">${ICON.check}</span>
@@ -455,8 +461,8 @@
           <span class="via-icon fb">${ICON.messenger}</span>
           <span class="opt-main"><span class="opt-title">คุยต่อในแชทเพจ Facebook</span><span class="opt-desc">ส่งรูปสรุปราคาเข้า Messenger ของเพจ แอดมินตอบกลับในแชท</span></span>
         </button>
-      </div>` : `
-      <p class="step-sub">กรอกชื่อ แล้วส่งรูปสรุปราคาเข้าแชทเพจ Facebook แอดมินจะตอบกลับพร้อมใบเสนอราคาในแชท</p>`}
+      </div>` : S.vat === false ? `
+      <p class="step-sub sub-gap">กรอกชื่อ แล้วส่งรูปสรุปราคาเข้าแชทเพจ Facebook แอดมินจะตอบกลับพร้อมใบเสนอราคาในแชท</p>` : ""}
       ${via() ? `
       <form class="form" id="contactForm" novalidate>
         ${field("name", "ชื่อผู้ติดต่อ", c.name, "text", "เช่น คุณสมชาย", true)}
@@ -582,6 +588,10 @@
   };
 
   // ---------- small view helpers ----------
+  function vatPreview() {
+    const r = P.quote(CK, { product: product(), method: S.method || "laser", uniqueName: S.uniqueName, twoSides: S.twoSides, qty: S.qty, ship: S.ship, vat: true });
+    return r.ok ? `+${fmt(r.vat)} ฿` : "+7%";
+  }
   function opt(key, val, title, desc, price) {
     const sel = S[key] === val;
     return `<button class="option ${sel ? "selected" : ""}" data-action="set" data-key="${key}" data-v='${JSON.stringify(val)}'>
@@ -693,6 +703,7 @@
 
   function contactErrors() {
     const c = S.contact, errs = [];
+    if (S.vat !== true && S.vat !== false) { errs.push("vat"); return errs; }
     if (!via()) { errs.push("via"); return errs; }
     if (!c.name.trim()) errs.push("name");
     if (via() === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) errs.push("email");
@@ -714,6 +725,11 @@
   async function submit() {
     const errs = contactErrors();
     if (errs.length) {
+      if (errs.includes("vat")) {
+        document.querySelector(".vat-q")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast("เลือกก่อนว่าต้องการใบกำกับภาษีไหมครับ");
+        return;
+      }
       if (errs.includes("via")) {
         document.querySelector(".options.via")?.scrollIntoView({ behavior: "smooth", block: "center" });
         toast("เลือกช่องทางรับใบเสนอราคาก่อนครับ");
@@ -830,6 +846,10 @@
         const def = stepDef(S.step);
         if (key === "deadlineMode" && S.deadlineMode === "date") { render("none"); $("#deadlineInput")?.focus(); break; }
         render("none");
+        if (key === "vat" && S.step === "summary") {
+          const el = document.querySelector(".vat-q");
+          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 140 });
+        }
         if (def.auto || (key === "deadlineMode" && S.deadlineMode === "none")) autoNext();
         break;
       }
