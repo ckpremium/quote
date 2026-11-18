@@ -114,6 +114,12 @@
     const i = vs.findIndex((s) => s.id === S.step);
     if (i > 0) go(vs[i - 1].id, { dir: "back" });
   }
+  // กลับหน้าแรกไปเลือกรุ่นใหม่ — เก็บตัวเลือกเดิมไว้ ถ้าส่งคำขอไปแล้วให้เริ่มเลขอ้างอิงใหม่
+  function goHome() {
+    track("go_home", { from: S.step });
+    if (S.step === "done") { S.ref = null; S.sentAt = null; S.submitStatus = null; }
+    go("intro", { dir: "back" });
+  }
   function autoNext() { setTimeout(next, 260); }
 
   // ---------- render ----------
@@ -126,6 +132,7 @@
 
     $("#topbar").hidden = id === "intro";
     $("#backBtn").hidden = id === "intro" || id === "done";
+    $("#homeBtn").hidden = id === "intro";
     $("#progress").hidden = idx < 0;
     if (idx >= 0) $("#progressFill").style.width = `${((idx + 1) / quizSteps.length) * 100}%`;
     const eyebrow = idx >= 0 ? `<p class="step-eyebrow">STEP ${idx + 1} / ${quizSteps.length}</p>` : "";
@@ -904,6 +911,7 @@
   });
   $("#nextBtn").addEventListener("click", next);
   $("#backBtn").addEventListener("click", back);
+  $("#homeBtn").addEventListener("click", goHome);
 
   // ---------- รูปสรุปราคา ----------
   let summaryBlob = null, summaryUrl = null;
